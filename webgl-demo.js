@@ -28,12 +28,13 @@ function main() {
     uniform mat4 uNormalMatrix;
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
+    uniform mat4 uCameraViewMatrix;
 
     varying highp vec2 vTextureCoord;
     varying highp vec3 vLighting;
 
     void main(void) {
-      gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+      gl_Position = uProjectionMatrix * uCameraViewMatrix * uModelViewMatrix * aVertexPosition;
       vTextureCoord = aTextureCoord;
 
       // Apply lighting effect
@@ -84,6 +85,7 @@ function main() {
       modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
       normalMatrix: gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
       uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
+      cameraViewMatrix: gl.getUniformLocation(shaderProgram, 'uCameraViewMatrix'), 
     },
   };
 
@@ -433,6 +435,11 @@ function drawScene(gl, programInfo, buffers, texture, deltaTime) {
               cubeRotation * .7,// amount to rotate in radians
               [0, 1, 0]);       // axis to rotate around (X)
 
+  
+  const cameraViewMatrix = mat4.create();
+  mat4.lookAt(cameraViewMatrix,[0,0,20],[0,0,0],[0,1,0]);
+  
+  
   const normalMatrix = mat4.create();
   mat4.invert(normalMatrix, modelViewMatrix);
   mat4.transpose(normalMatrix, normalMatrix);
@@ -514,6 +521,11 @@ function drawScene(gl, programInfo, buffers, texture, deltaTime) {
       programInfo.uniformLocations.modelViewMatrix,
       false,
       modelViewMatrix);
+  gl.uniformMatrix4fv(
+      programInfo.uniformLocations.cameraViewMatrix,
+      false, 
+      cameraViewMatrix);
+  
   gl.uniformMatrix4fv(
       programInfo.uniformLocations.normalMatrix,
       false,
